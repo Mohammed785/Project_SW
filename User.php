@@ -49,6 +49,10 @@ class User implements Entity{
 
     
     /* Post Queries Section */
+    function getPost($post_id){
+        $post = $this->db->select("SELECT * FROM posts WHERE id={$post_id}");
+        return $post;
+    }
     function getMyPosts(){
         $posts = $this->db->select("SELECT * FROM posts WHERE user_id={$this->id}");
         return $posts;
@@ -69,7 +73,31 @@ class User implements Entity{
         return $posts;
     }
     
-    
+    function createPost($body){
+        if(!$this->id){
+            $this->save();
+        }
+        $post = $this->db->insert("INSERT INTO posts(body,user_id) VALUES({$body},{$this->id})");
+        return $post;
+    }
+    function deletePost($post_id){
+        $exists = $this->getPost($post_id);
+        if($exists){
+            if($exists[0]["user_id"]!=$this->id){
+                return false;
+            }
+        }
+        $deleted = $this->db->delete("DELETE FROM posts WHERE id={$post_id}");
+        return $deleted;
+    }
+    function updatePost($newBody,$post_id){
+        $exists = $this->getPost($post_id);
+        if(!$exists || $exists[0]["user_id"]!=$this->id){
+            return false;
+        }
+        $updated = $this->db->update("UPDATE posts SET body={$newBody} WHERE id={$post_id}");
+        return $updated;
+    }
     function getMySavedPosts(){
         $posts = $this->db->select("SELECT p.id as post_id,p.body FROM saved_posts sv 
         JOIN posts p WHERE sv.post_id=p.id AND sv.user_id ={$this->id}");
@@ -105,7 +133,16 @@ class User implements Entity{
         }
         return $this->db->insert("INSERT INTO comments(body,post_id,user_id) VALUES({$comment},{$post_id},{$this->id})");
     }
-    
+
+    function updateComment($newBody,$comment_id){
+        $exists = $this->db->select("SELECT * FROM comments WHERE id={$comment_id}");
+        if(!$exists || $exists[0]["user_id"]!=$this->id){
+            return false;
+        }
+        $updated = $this->db->update("UPDATE comments SET body={$newBody} WHERE id={$comment_id}");
+        return $updated;
+    }
+
     function deleteComment($comment_id){
         if(!$this->id){
             $this->save();   
@@ -278,8 +315,17 @@ class User implements Entity{
     }
 
     /**Groups Queries Function Section */
-    function joinGroup($group_id){
+
+    function checkGroupMembership($group_id){
         $member =$this->db->select("SELECT * from group_memberships WHERE group_id={$group_id} AND user_id={$this->id}");
+        if($member){
+            return true;
+        }
+        return false;
+    }
+
+    function joinGroup($group_id){
+        $member =$this->checkGroupMembership($group_id);
         if($member){
             return false;
         }
@@ -290,7 +336,7 @@ class User implements Entity{
         return $this->db->insert("INSERT INTO group_memberships(user_id,group_id) VALUES({$this->id},{$group_id})");
     }
     function leaveGroup($group_id){
-        $member =$this->db->select("SELECT * from group_memberships WHERE group_id={$group_id} AND user_id={$this->id}");
+        $member = $this->checkGroupMembership($group_id);
         if(!$member){
             return false;
         }
@@ -329,6 +375,7 @@ class User implements Entity{
     }
 
     /**Reports Function Section */
+
     function createReport($reason,$user_id){
         return $this->db->insert("INSERT INTO reports(reason,creator_id,accused_id)VALUES({$reason},{$this->id},{$user_id})");
     }
@@ -341,6 +388,15 @@ class User implements Entity{
         FROM reports r JOIN users u ON r.creator_id=u.id JOIN users u2 ON r.accused_id = u2.id;");
     }
     function acceptReport($creator_id,$accused_id){
+        if(!$this->admin){
+            return false;
+        }
+        return $this->db->delete("DELETE FROM reports WHERE creator_id={$creator_id} AND accused_id={$accused_id}");
+    }
+    function cancelReport($creator_id,$accused_id){
+        if(!$this->admin){
+            return false;
+        }
         return $this->db->delete("DELETE FROM reports WHERE creator_id={$creator_id} AND accused_id={$accused_id}");
     }
 
@@ -356,6 +412,7 @@ class User implements Entity{
     }
     function getChatMSG($chat_id){
         $messages = $this->db->select("SELECT * FROM messages WHERE chat_id={$chat_id}");
+        return $messages;
     }
 
     private function createChat($friend_id){
@@ -446,9 +503,5 @@ class User implements Entity{
         return $users;
     }
 }
-
-
 ?>
-
-
 
