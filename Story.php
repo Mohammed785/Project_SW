@@ -1,5 +1,6 @@
 <?php
 include_once "./baseEntity.php";
+include_once "./utils.php";
 
 class Story implements Entity{
     private $id,$author_id;
@@ -9,7 +10,7 @@ class Story implements Entity{
         $this->id = isset($story_info["id"])?$story_info["id"]:0;
         $this->body = $story_info["body"];
         $this->author_id = $story_info["author_id"];
-        
+        $this->db = getDBConnection();
     }
     function getId(){
         return $this->id;

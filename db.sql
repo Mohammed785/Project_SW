@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `posts`(
     body TEXT NOT NULL,
     user_id int,
     PRIMARY KEY(id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `comments`(
@@ -27,8 +27,8 @@ CREATE TABLE IF NOT EXISTS `comments`(
     post_id int NOT NULL,
     user_id int NOT NULL,
     PRIMARY KEY(id),
-    FOREIGN KEY(post_id) REFERENCES posts(id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `friend_requests`(
@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS `friend_requests`(
     requested_id int NOT NULL,
     friends boolean default 1,
     PRIMARY KEY(sender_id,requested_id),
-    FOREIGN KEY(sender_id) REFERENCES users(id),
-    FOREIGN KEY(requested_id) REFERENCES users(id)
+    FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(requested_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `relations`(
@@ -45,16 +45,16 @@ CREATE TABLE IF NOT EXISTS `relations`(
     requested_id int NOT NULL,
     friends boolean default 1,
     PRIMARY KEY(sender_id,requested_id),
-    FOREIGN KEY(sender_id) REFERENCES users(id),
-    FOREIGN KEY(requested_id) REFERENCES users(id)
+    FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(requested_id) REFERENCES users(id)ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `saved_posts`(
     post_id int NOT NULL,
     user_id int NOT NULL,
     PRIMARY KEY(user_id,post_id),
-    FOREIGN KEY(post_id) REFERENCES posts(id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id)ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `post_reacts`(
@@ -62,8 +62,8 @@ CREATE TABLE IF NOT EXISTS `post_reacts`(
     user_id int NOT NULL,
     liked boolean NOT NULL,
     PRIMARY KEY(user_id,post_id),
-    FOREIGN KEY(post_id) REFERENCES posts(id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id)ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `comment_reacts`(
@@ -71,8 +71,8 @@ CREATE TABLE IF NOT EXISTS `comment_reacts`(
     user_id int NOT NULL,
     liked boolean NOT NULL,
     PRIMARY KEY(user_id,comment_id),
-    FOREIGN KEY(comment_id) REFERENCES comments(id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `groups`(
@@ -82,15 +82,15 @@ CREATE TABLE IF NOT EXISTS `groups`(
     private boolean DEFAULT 0,
     owner_id int UNIQUE,
     PRIMARY KEY(id),
-    FOREIGN KEY(owner_id) REFERENCES users(id)
+    FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `group_memberships`(
     user_id int NOT NULL,
     group_id int NOT NULL,
     PRIMARY KEY(user_id,group_id),
-    FOREIGN KEY(group_id) REFERENCES groups(id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(group_id) REFERENCES groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `group_requests`(
@@ -98,8 +98,8 @@ CREATE TABLE IF NOT EXISTS `group_requests`(
     group_id int NOT NULL,
     accepted boolean DEFAULT 0,
     PRIMARY KEY(user_id,group_id),
-    FOREIGN KEY(group_id) REFERENCES groups(id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(group_id) REFERENCES groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `reports`(
@@ -107,8 +107,8 @@ CREATE TABLE IF NOT EXISTS `reports`(
     accused_id int NOT NULL,
     reason TEXT NOT NULL,
     PRIMARY KEY(creator_id,accused_id),
-    FOREIGN KEY(creator_id) REFERENCES users(id),
-    FOREIGN KEY(accused_id) REFERENCES users(id)
+    FOREIGN KEY(creator_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(accused_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `chats`(
@@ -116,8 +116,8 @@ CREATE TABLE IF NOT EXISTS `chats`(
     user1_id int NOT NULL,
     user2_id int NOT NULL,
     PRIMARY KEY(id),
-    FOREIGN KEY(user1_id) REFERENCES users(id),
-    FOREIGN KEY(user2_id) REFERENCES users(id)
+    FOREIGN KEY(user1_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(user2_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `messages`(
@@ -125,8 +125,8 @@ CREATE TABLE IF NOT EXISTS `messages`(
     chat_id int NOT NULL,
     body TEXT NOT NULL,
     PRIMARY KEY(sender_id,chat_id),
-    FOREIGN KEY(sender_id) REFERENCES users(id),
-    FOREIGN KEY(chat_id) REFERENCES chats(id)
+    FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(chat_id) REFERENCES chats(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `storys`(
@@ -134,15 +134,15 @@ CREATE TABLE IF NOT EXISTS `storys`(
     body TEXT NOT NULL,
     author_id int NOT NULL,
     PRIMARY KEY(id),
-    FOREIGN KEY(author_id) REFERENCES users(id)
+    FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `story_views`(
     story_id int NOT NULL,
     user_id int NOT NULL,
     PRIMARY KEY(user_id,story_id),
-    FOREIGN KEY(user_id) REFERENCES users(id),
-    FOREIGN KEY(story_id) REFERENCES storys(id)
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(story_id) REFERENCES storys(id) ON DELETE CASCADE
 );
 
 

@@ -1,5 +1,6 @@
 <?php
 include_once "./baseEntity.php";
+include_once "./utils.php";
 
 class Comment implements Entity{
     private $id,$user_id,$post_id;
@@ -10,7 +11,7 @@ class Comment implements Entity{
         $this->body = $comment_info["body"];
         $this->user_id = $comment_info["user_id"];
         $this->post_id = $comment_info["post_id"];
-        
+        $this->db = getDBConnection();
     }
     function getId(){
         return $this->id;

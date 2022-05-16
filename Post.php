@@ -1,5 +1,7 @@
 <?php
 include_once "./baseEntity.php";
+include_once "./utils.php";
+
 class Post implements Entity{
     private $id,$user_id;
     public $body;
@@ -8,6 +10,7 @@ class Post implements Entity{
         $this->id = isset($post_info["id"])?$post_info["id"]:0;
         $this->body = $post_info["body"];
         $this->user_id = $post_info["user_id"];
+        $this->db = getDBConnection();
     }
     function getId(){
         return $this->id;

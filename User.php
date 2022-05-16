@@ -47,20 +47,17 @@ class User implements Entity{
         return false;
     }
 
+    
     /* Post Queries Section */
     function getMyPosts(){
         $posts = $this->db->select("SELECT * FROM posts WHERE user_id={$this->id}");
         return $posts;
     }
     
-    function getMySavedPosts(){
-        $posts = $this->db->select("SELECT * FROM posts JOIN saved_posts sv WHERE sv.post_id=posts.id AND sv.user_id = {$this->id}");
-        return $posts;
-    }
-
     function getFriendsPosts(){
-        $posts = $this->db->select("SELECT p.*
+        $posts = $this->db->select("SELECT p.* , u.*
                     FROM posts p
+                    JOIN users u ON u.id=p.user_id
                     WHERE
                     p.user_id IN (SELECT requested_id FROM relations
                     WHERE sender_id = {$this->id} AND friends=1
@@ -69,6 +66,13 @@ class User implements Entity{
                     WHERE requested_id = {$this->id} AND friends=1);"
         );
         shuffle($posts);
+        return $posts;
+    }
+    
+    
+    function getMySavedPosts(){
+        $posts = $this->db->select("SELECT p.id as post_id,p.body FROM saved_posts sv 
+        JOIN posts p WHERE sv.post_id=p.id AND sv.user_id ={$this->id}");
         return $posts;
     }
 
@@ -81,11 +85,58 @@ class User implements Entity{
         }
         return $this->db->insert("INSERT INTO saved_posts(post_id,user_id) VALUES({$post_id},{$this->id})");
     }
+    function unSavePost($post_id){
+        if(!$this->id){
+            $this->save();
+        }
+        return $this->db->delete("DELETE FROM saved_posts(post_id,user_id) VALUES({$post_id},{$this->id})");
+    }
+
+    function deleteAllMyPosts(){
+        if(!$this->id){
+            $this->save();   
+        }
+        return $this->db->delete("DELETE FROM posts WHERE user_id={$this->id}");
+    }
 
     function commentOnPost($post_id,$comment){
+        if(!$this->id){
+            $this->save();   
+        }
         return $this->db->insert("INSERT INTO comments(body,post_id,user_id) VALUES({$comment},{$post_id},{$this->id})");
     }
     
+    function deleteComment($comment_id){
+        if(!$this->id){
+            $this->save();   
+        }
+        $comment = $this->db->select("SELECT * FROM comments WHERE id={$comment_id}");
+        if($comment["user_id"]==$this->id){
+            return $this->db->delete("DELETE FROM comments WHERE id={$comment_id}");
+        }
+        $post_id = $comment["post_id"];
+        $post = $this->db->select("SELECT * FROM posts WHERE id={$post_id} AND user_id={$this->user}");
+        if($post){
+            if($post["user_id"]==$this->id){
+                return $this->db->delete("DELETE FROM comments WHERE id={$comment_id}");
+            }
+        }
+        return false;
+    }
+
+    function deleteAllMyCommentsOnPost($post_id){
+        if(!$this->id){
+            $this->save();   
+        }
+        return $this->db->delete("DELETE FROM comments WHERE user_id={$this->id} AND post_id={$post_id}");
+    }
+
+    function deleteAllMyComments(){
+        if(!$this->id){
+            $this->save();   
+        }
+        return $this->db->delete("DELETE FROM comments WHERE user_id={$this->id}");
+    }
 
     /**FriendRequest Queries Section */
     function getFriendRequests($friend_id=NULL,$reverse=false){
@@ -162,6 +213,7 @@ class User implements Entity{
         $reverse_friendship = $this->db->insert("INSERT INTO relations(sender_id,requested_id,friends)
         VALUES({$friend_id},{$this->id},1)"
         );
+        $this->createChat($friend_id);
         return $friendship;
     }
 
@@ -172,6 +224,7 @@ class User implements Entity{
         }
         $deleted = $this->db->delete("DELETE FROM relations WHERE sender_id={$friend_id} AND requested_id={$this->id} AND friends=1 OR 
         sender_id={$this->id} AND requested_id={$friend_id} AND friends=1");
+        $this->deleteChat($friend_id);
         return $deleted;
     }
 
@@ -209,7 +262,13 @@ class User implements Entity{
         return $deleted;
     }
 
-
+    /**Story Function Section */
+    function createStory($body){
+        return $this->db->insert("INSERT INTO storys(body,author_id) VALUES({$body},{$this->id})");
+    }
+    function deleteStory($story_id){
+        return $this->db->delete("DELETE FROM storys WHERE story_id={$story_id}");
+    }
     function viewStory($story_id){
         $exists = $this->db->select("SELECT * FROM story_views WHERE story_id={$story_id} AND user_id={$this->id}");
         if($exists){
@@ -269,8 +328,60 @@ class User implements Entity{
         return $requests;
     }
 
+    /**Reports Function Section */
+    function createReport($reason,$user_id){
+        return $this->db->insert("INSERT INTO reports(reason,creator_id,accused_id)VALUES({$reason},{$this->id},{$user_id})");
+    }
+    function getReports(){
+        if(!$this->admin){
+            return false;
+        }
+        return $this->db->select("SELECT r.reason,u.id as `c_id`,u.name `c_name`,u.profile_photo `c_pic`,
+        u2.id `a_id`,u2.name `a_name`,u2.profile_photo `a_pic` 
+        FROM reports r JOIN users u ON r.creator_id=u.id JOIN users u2 ON r.accused_id = u2.id;");
+    }
+    function acceptReport($creator_id,$accused_id){
+        return $this->db->delete("DELETE FROM reports WHERE creator_id={$creator_id} AND accused_id={$accused_id}");
+    }
+
+    /**Chat Queries Function Section  */
+
+    function getChatWithChatID($chat_id){
+        $chat = $this->db->select("SELECT * FROM chats WHERE id={$chat_id}");
+        return $chat;
+    }
+    function getChatWithFriendID($friend_id){
+        $chat=$this->db->select("SELECT * FROM chats WHERE user1_id={$this->id} AND user2_id={$friend_id} OR user1_id={$friend_id} AND user2_id={$this->id}");
+        return $chat;
+    }
+    function getChatMSG($chat_id){
+        $messages = $this->db->select("SELECT * FROM messages WHERE chat_id={$chat_id}");
+    }
+
+    private function createChat($friend_id){
+        $chat = $this->db->insert("INSERT INTO chats(user1_id,user2_id) VALUES({$this->id},{$friend_id})");
+        return $chat;
+    }
+    private function deleteChat($friend_id){
+        $chat = $this->db->delete("DELETE FROM chats WHERE user1_id={$this->id} AND user2_id={$friend_id} OR user1_id={$friend_id} AND user2_id={$this->id}");
+        return $chat;
+    }
+
+    function sendMessage($chat_id,$body){
+        $msg = $this->db->insert("INSERT INTO messages(body,sender_id,chat_id) VALUES({$body},{$this->id},{$chat_id})");
+        return $msg;
+    }
 
     /**Global Queries Function Section */
+
+    /**help you with the login process */
+    static function authenticate($email,$password){
+        $user  = User::findByEmail($email);
+        if(!$user || $user->password!=$password){
+            return false;
+        }
+        return $user;
+    }
 
     static function findByEmail($email){
         $db = getDBConnection();
