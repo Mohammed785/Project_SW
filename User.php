@@ -304,7 +304,7 @@ class User implements Entity{
 
     /**Story Function Section */
     function createStory($body){
-        return $this->db->insert("INSERT INTO storys(body,author_id) VALUES({$body},{$this->id})");
+        return $this->db->insert("INSERT INTO storys(body,author_id) VALUES('{$body}',{$this->id})");
     }
     function deleteStory($story_id){
         return $this->db->delete("DELETE FROM storys WHERE story_id={$story_id}");
@@ -404,7 +404,13 @@ class User implements Entity{
     }
 
     /**Chat Queries Function Section  */
-
+    function getMyChats(){
+        $chats = $this->db->select("SELECT ch.id as `chat_id`, u1.id as `user1Id`,u1.name as `user1Name` , u1.profile_photo as `user1Profile_photo`,
+        u2.id as `user2Id`,u2.name as `user2Name`,u2.profile_photo as `user2Profile_photo` FROM chats ch
+        JOIN users u1 ON u1.id=ch.user1_id
+        JOIN users u2 ON u2.id=ch.user2_id");
+        return $chats;
+    }
     function getChatWithChatID($chat_id){
         $chat = $this->db->select("SELECT * FROM chats WHERE id={$chat_id}");
         return $chat;

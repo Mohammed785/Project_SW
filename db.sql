@@ -121,10 +121,11 @@ CREATE TABLE IF NOT EXISTS `chats`(
 );
 
 CREATE TABLE IF NOT EXISTS `messages`(
+    id INT AUTO_INCREMENT,
     sender_id int NOT NULL,
     chat_id int NOT NULL,
     body TEXT NOT NULL,
-    PRIMARY KEY(sender_id,chat_id),
+    PRIMARY KEY(id),
     FOREIGN KEY(sender_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY(chat_id) REFERENCES chats(id) ON DELETE CASCADE
 );
