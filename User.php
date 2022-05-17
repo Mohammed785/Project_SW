@@ -28,13 +28,16 @@ class User implements Entity{
     }
     function save(){
         if($this->id==0){
-            return $this->db->insert("INSERT INTO users(name,email,password) VALUES('$this->name','$this->email','$this->password')");
+            return $this->db->insert("INSERT INTO users(name,email,password,profile_photo,profile_cover,bio,birth_date) 
+            VALUES ('$this->name','$this->email','$this->password','$this->profile_photo','$this->profile_cover','$this->bio','$this->birth_date')");
         }
         return $this->update();
     }
     function update(){
         if($this->id!=0){
-            return $this->db->update("UPDATE users SET name = '$this->name',email='$this->email',password='$this->password' WHERE id='$this->id'");
+            return $this->db->update("UPDATE users SET name = '$this->name',email='$this->email',password='$this->password',
+            profile_photo='$this->profile_photo',profile_cover='$this->profile_cover',bio='$this->bio',birth_date='$this->birth_date'
+            WHERE id='$this->id'");
 
         }
         return $this->save();
@@ -77,7 +80,7 @@ class User implements Entity{
         if(!$this->id){
             $this->save();
         }
-        $post = $this->db->insert("INSERT INTO posts(body,user_id) VALUES({$body},{$this->id})");
+        $post = $this->db->insert("INSERT INTO posts(body,user_id) VALUES('{$body}',{$this->id})");
         return $post;
     }
     function deletePost($post_id){
@@ -95,7 +98,7 @@ class User implements Entity{
         if(!$exists || $exists[0]["user_id"]!=$this->id){
             return false;
         }
-        $updated = $this->db->update("UPDATE posts SET body={$newBody} WHERE id={$post_id}");
+        $updated = $this->db->update("UPDATE posts SET body='{$newBody}' WHERE id={$post_id}");
         return $updated;
     }
     function getMySavedPosts(){
@@ -131,7 +134,7 @@ class User implements Entity{
         if(!$this->id){
             $this->save();   
         }
-        return $this->db->insert("INSERT INTO comments(body,post_id,user_id) VALUES({$comment},{$post_id},{$this->id})");
+        return $this->db->insert("INSERT INTO comments(body,post_id,user_id) VALUES('{$comment}',{$post_id},{$this->id})");
     }
 
     function updateComment($newBody,$comment_id){
@@ -139,7 +142,7 @@ class User implements Entity{
         if(!$exists || $exists[0]["user_id"]!=$this->id){
             return false;
         }
-        $updated = $this->db->update("UPDATE comments SET body={$newBody} WHERE id={$comment_id}");
+        $updated = $this->db->update("UPDATE comments SET body='{$newBody}' WHERE id={$comment_id}");
         return $updated;
     }
 
@@ -425,7 +428,7 @@ class User implements Entity{
     }
 
     function sendMessage($chat_id,$body){
-        $msg = $this->db->insert("INSERT INTO messages(body,sender_id,chat_id) VALUES({$body},{$this->id},{$chat_id})");
+        $msg = $this->db->insert("INSERT INTO messages(body,sender_id,chat_id) VALUES('{$body}',{$this->id},{$chat_id})");
         return $msg;
     }
 
